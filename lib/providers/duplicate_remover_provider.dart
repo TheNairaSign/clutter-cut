@@ -169,6 +169,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
       }
     }
     
+    // After deleting all files
     state = state.copyWith(isScanning: false);
     
     ScaffoldMessenger.of(context).showSnackBar(
@@ -178,7 +179,20 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
       ),
     );
     
-    await findDuplicates();
+    // Clear duplicates instead of rescanning
+    clearDuplicates();
+  }
+
+  void removeDuplicateGroup(String hash,) {
+    state = state.copyWith(
+      duplicateFiles: Map.from(state.duplicateFiles)..remove(hash),
+    );
+  }
+  
+  void clearDuplicates() {
+    state = state.copyWith(
+      duplicateFiles: {},
+    );
   }
 }
 
@@ -188,3 +202,5 @@ final duplicateRemoverNotifierProvider = StateNotifierProvider.family<DuplicateR
     return DuplicateRemoverProvider(context, clutterState);
   }
 );
+
+
