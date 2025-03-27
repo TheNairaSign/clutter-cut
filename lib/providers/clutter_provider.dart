@@ -22,16 +22,25 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     currentAction: ''
   ));
 
+
+
   Future<void> requestPermissions() async {
     await Permission.storage.request();
-    if (await Permission.storage.isDenied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Storage permission is required')),
-      );
+    final permissionStatus = await Permission.storage.status;
+    if (permissionStatus.isDenied) {
+      await Permission.storage.request();
+    } if (permissionStatus.isPermanentlyDenied || permissionStatus.isRestricted || permissionStatus.isLimited) {
+      await openAppSettings();
     }
+    // await Permission.storage.request();
+    // if (await Permission.storage.isDenied) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Storage permission is required')),
+    //   );
   }
 
   Future<void> selectDirectory() async {
+    await requestPermissions();
     try {
       String? directoryPath = await FilePicker.platform.getDirectoryPath();
       

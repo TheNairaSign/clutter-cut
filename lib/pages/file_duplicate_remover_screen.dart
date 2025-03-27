@@ -181,9 +181,18 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
                         itemBuilder: (context, index) {
                           final hash = duplicateState.duplicateFiles.keys.elementAt(index);
                           final files = duplicateState.duplicateFiles[hash]!;
-                          final totalSize = files.isNotEmpty 
-                              ? '${(files.first.lengthSync() / 1024).toStringAsFixed(2)} KB'
-                              : 'Unknown';
+                          
+                          // Safely get file size with error handling
+                          String totalSize = 'Unknown';
+                          if (files.isNotEmpty) {
+                            try {
+                              final fileSize = files.first.lengthSync() / 1024;
+                              totalSize = '${fileSize.toStringAsFixed(2)} KB';
+                            } catch (e) {
+                              // File might have been deleted or is inaccessible
+                              debugPrint('Error getting file size: $e');
+                            }
+                          }
                           
                           return AnimationConfiguration.staggeredList(
                             position: index,
@@ -211,6 +220,29 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
                                     },
                                     children: files.map((file) {
                                       final isOriginal = files.indexOf(file) == 0;
+                                      
+                                      // Check if file still exists before displaying
+                                      bool fileExists = false;
+                                      try {
+                                        fileExists = file.existsSync();
+                                      } catch (e) {
+                                        debugPrint('Error checking if file exists: $e');
+                                      }
+                                      
+                                      if (!fileExists) {
+                                        // Return an error placeholder for missing files
+                                        return ListTile(
+                                          title: Text(
+                                            file.path.split(Platform.pathSeparator).last,
+                                            style: TextStyle(color: Colors.grey),
+                                          ),
+                                          subtitle: Text(
+                                            'File no longer exists',
+                                            style: TextStyle(fontSize: 12, color: errorColor),
+                                          ),
+                                          leading: Icon(Icons.error_outline, color: errorColor),
+                                        );
+                                      }
                                       
                                       return ListTile(
                                         title: Text(

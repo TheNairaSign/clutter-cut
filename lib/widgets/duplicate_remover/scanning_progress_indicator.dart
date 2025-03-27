@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 
 class ScanningProgressIndicator extends StatelessWidget {
   final dynamic duplicateState;

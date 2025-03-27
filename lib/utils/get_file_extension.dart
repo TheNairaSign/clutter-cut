@@ -22,7 +22,7 @@ Widget getFileIcon(BuildContext context, String filePath) {
   final defaultIconColor = Colors.black; // Subtle gray for defaults
   final pdfColor = colorScheme.error; // Red for PDFs
   final imageColor = colorScheme.secondary; // Green for images
-  final videoColor = colorScheme.primary; // Blue for videos
+  // final videoColor = colorScheme.primary; // Blue for videos
   
   switch (extension) {
     case 'pdf':
