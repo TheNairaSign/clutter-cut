@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/models/recycled_file.dart';
+import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -237,6 +238,8 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
       ref.read(uiEventProvider.notifier).state = ShowSnackbar(
         'File restored successfully',
       );
+      
+      ref.watch(duplicateRemoverNotifierProvider.notifier).findDuplicatesByHashing();
       
     } catch (e) {
       debugPrint('Error restoring file: $e');
