@@ -41,7 +41,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   provider: ^6.1.2
   animate_do: ^4.2.0
-  flutter_svg: ^2.0.17
+  flutter_svg: ^2.2.1
   google_fonts: ^6.2.1
   flutter_staggered_animations: ^1.1.1
 
@@ -71,6 +71,7 @@ flutter:
   assets:
     - assets/
     - assets/svgs/
+    - assets/svgs/bins/
 
   fonts:
     - family: GeistMono

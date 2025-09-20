@@ -15,7 +15,7 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     selectedFiles: [],
     duplicateFiles: {},
     isScanning: false, 
-    totalFiles: 0, 
+    totalFiles: 0,
     scannedFiles: 0, 
     currentAction: ''
   ));

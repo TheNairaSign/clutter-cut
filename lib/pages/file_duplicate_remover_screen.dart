@@ -2,11 +2,13 @@ import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/providers/clutter_provider.dart';
 import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:clutter_cut/widgets/duplicate_files_list.dart';
+import 'package:clutter_cut/widgets/recycle_bin_view.dart';
 import 'package:clutter_cut/widgets/scanning_progress_indicator.dart';
 import 'package:clutter_cut/widgets/summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class FileDuplicateRemoverScreen extends ConsumerStatefulWidget {
   const FileDuplicateRemoverScreen({super.key});
@@ -93,6 +95,8 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
 
     final duplicateCount = duplicateState.duplicateFiles.keys.length;
     debugPrint('Duplicate Files Display: $duplicateCount');
+
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
       body: CustomScrollView(
@@ -100,6 +104,20 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
           SliverAppBar(
             floating: true,
             pinned: true,
+            actionsPadding: EdgeInsets.symmetric(horizontal: 15),
+            actions: [
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder:  (context) => const RecycleBinView())),
+                child: Container(
+                  height: 35,
+                  width: 35,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: .3),
+                    shape: BoxShape.circle
+                  ),
+                  child: SvgPicture.asset(isDarkMode ? 'assets/svgs/bins/recycle-bin-white.svg' : 'assets/svgs/bins/recycle-bin-black.svg', width: 24, height: 24, fit: BoxFit.scaleDown),
+                ))
+            ],
             expandedHeight: 120,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,

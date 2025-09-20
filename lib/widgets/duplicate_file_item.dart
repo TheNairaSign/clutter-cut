@@ -66,9 +66,8 @@ class DuplicateFileItem extends ConsumerWidget {
               onPressed: () async {
                 final confirm = await confirmRemoval(context, file.path);
                 if (confirm) {
-                  await file.delete();
-                  if (!context.mounted) return; 
-                  await duplicateRemover.findDuplicatesByHashing();
+                  // Use the proper method to move to recycle bin
+                  await duplicateRemover.confirmRemoveFile(file);
                 }
               },
             ),

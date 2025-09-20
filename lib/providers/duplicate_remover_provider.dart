@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/providers/clutter_provider.dart';
+import 'package:clutter_cut/providers/recycle_bin_provider.dart';
 import 'package:clutter_cut/providers/state/clutter_state.dart';
 import 'package:clutter_cut/utils/calculate_md5.dart';
 import 'package:clutter_cut/utils/is_file_valid.dart';
@@ -93,12 +94,12 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
 
   Future<void> confirmRemoveFile(File file) async {
     try {
-      await file.delete();
-      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Deleted ${file.path}');
-      // After deleting, re-scan to update the UI state.
+      // Move to recycle bin instead of deleting
+      await ref.read(recycleBinProvider.notifier).moveToRecycleBin(file);
+      // After moving to recycle bin, re-scan to update the UI state
       await findDuplicatesByHashing();
     } catch (e) {
-      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error deleting ${file.path}: $e', isError: true);
+      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error removing ${file.path}: $e', isError: true);
     }
   }
 
@@ -115,7 +116,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     
     state = state.copyWith(
       isScanning: true,
-      currentAction: "Removing duplicates...",
+      currentAction: "Moving duplicates to recycle bin...",
       scannedFiles: 0,
       totalFiles: totalDuplicates
     );
@@ -125,6 +126,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     
     int processed = 0;
     final entries = List.from(state.duplicateFiles.entries);
+    final recycleBin = ref.read(recycleBinProvider.notifier);
 
     for (final entry in entries) {
       final files = entry.value;
@@ -133,14 +135,14 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
         try {
           state = state.copyWith(
             scannedFiles: processed + 1,
-            currentAction: "Removing: ${files[i].path}"
+            currentAction: "Moving to recycle bin: ${files[i].path}"
           );
           
-          await files[i].delete();
+          await recycleBin.moveToRecycleBin(files[i]);
           count++;
         } catch (e) {
           failedCount++;
-           debugPrint('Failed to delete ${files[i].path}');
+          debugPrint('Failed to move ${files[i].path} to recycle bin: $e');
         }
         processed++;
       }
