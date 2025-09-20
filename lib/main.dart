@@ -1,3 +1,4 @@
+import 'package:clutter_cut/pages/file_duplicate_remover_screen.dart';
 import 'package:clutter_cut/pages/start_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'GeistMono',
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
         primarySwatch: Colors.indigo,
@@ -40,7 +42,8 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: ThemeData.dark().scaffoldBackgroundColor,
+        fontFamily: 'GeistMono',
+        scaffoldBackgroundColor: const Color(0xFF121212), // Corrected dark background
         brightness: Brightness.dark,
         cardColor: const Color(0xFF212121),
         colorScheme: ColorScheme.dark(
@@ -61,7 +64,8 @@ class MyApp extends StatelessWidget {
           bodySmall: TextStyle(color: Color(0xFFB0BEC5)),
         ),
       ),
-      home: const SplashScreen(),
+      // home: const SplashScreen(),
+      home: FileDuplicateRemoverScreen(),
     );
   }
 }

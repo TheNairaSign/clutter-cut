@@ -1,24 +1,26 @@
+import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ScanningProgressIndicator extends StatelessWidget {
-  final dynamic duplicateState;
+class ScanningProgressIndicator extends ConsumerWidget {
 
   const ScanningProgressIndicator({
     super.key,
-    required this.duplicateState,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final primaryColor = colorScheme.primary;
+
+    final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(duplicateState.currentAction ?? 'Scanning...'),
+          Text(duplicateState.currentAction),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             borderRadius: BorderRadius.circular(5),

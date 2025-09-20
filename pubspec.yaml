@@ -72,6 +72,12 @@ flutter:
     - assets/
     - assets/svgs/
 
+  fonts:
+    - family: GeistMono
+      fonts:
+        - asset: assets/fonts/GeistMonoNerdFontMono-Regular.otf
+        - asset: assets/fonts/GeistMonoNerdFontMono-Bold.otf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

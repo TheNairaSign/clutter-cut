@@ -1,25 +1,27 @@
 import 'dart:io';
+import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:clutter_cut/utils/confirm_dialog.dart';
 import 'package:clutter_cut/utils/get_file_extension.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DuplicateFileItem extends StatelessWidget {
+class DuplicateFileItem extends ConsumerWidget {
   final File file;
   final bool isOriginal;
-  final dynamic duplicateRemover;
 
   const DuplicateFileItem({
     super.key,
     required this.file,
     required this.isOriginal,
-    required this.duplicateRemover,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final secondaryColor = colorScheme.secondary;
     final errorColor = colorScheme.error;
+
+    final duplicateRemover = ref.watch(duplicateRemoverNotifierProvider.notifier);
 
     return ListTile(
       title: Text(
@@ -46,10 +48,10 @@ class DuplicateFileItem extends StatelessWidget {
             style: ButtonStyle(
               foregroundColor: WidgetStatePropertyAll(secondaryColor),
               shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-              backgroundColor: WidgetStatePropertyAll(secondaryColor.withOpacity(0.1)),
+              backgroundColor: WidgetStatePropertyAll(secondaryColor.withValues(alpha: .1)),
             ),
-              child: const Text('Original'),
               onPressed: null,
+              child: const Text('Original'),
             ),
         )
         : SizedBox(
@@ -58,14 +60,15 @@ class DuplicateFileItem extends StatelessWidget {
             style: ButtonStyle(
               foregroundColor: WidgetStatePropertyAll(errorColor),
               shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-              backgroundColor: WidgetStatePropertyAll(errorColor.withOpacity(0.1)),
+              backgroundColor: WidgetStatePropertyAll(errorColor.withValues(alpha: .1)),
             ),
               child: const Text('Delete'),
               onPressed: () async {
                 final confirm = await confirmRemoval(context, file.path);
                 if (confirm) {
                   await file.delete();
-                  await duplicateRemover.findDuplicates();
+                  if (!context.mounted) return; 
+                  await duplicateRemover.findDuplicatesByHashing();
                 }
               },
             ),

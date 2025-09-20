@@ -1,245 +1,118 @@
 import 'dart:io';
-import 'dart:math';
 
+import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/providers/clutter_provider.dart';
 import 'package:clutter_cut/providers/state/clutter_state.dart';
 import 'package:clutter_cut/utils/calculate_md5.dart';
-import 'package:clutter_cut/utils/confirm_dialog.dart';
 import 'package:clutter_cut/utils/is_file_valid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' hide Provider;
 
 class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
-  final BuildContext context;
-  
-  DuplicateRemoverProvider(this.context, ClutterState initialState) : super(initialState);
+  final Ref ref;
 
-  Future<void> findDuplicates() async {
-    debugPrint('Finding Duplicates...');
+  DuplicateRemoverProvider(this.ref): super(ClutterState(
+    selectedFiles: [],
+    duplicateFiles: {},
+    isScanning: false, 
+    totalFiles: 0, 
+    scannedFiles: 0, 
+    currentAction: ''
+  ));
+
+  Future<void> findDuplicatesByHashing() async {
+    debugPrint('Hashing potential duplicates...');
+    
+    // Get selected files and ensure they are all File objects
+    final selectedFiles = ref.read(clutterNotifierProvider).selectedFiles;
+    final filesToHash = selectedFiles.whereType<File>().toList();
+    
     try {
+      if (filesToHash.isEmpty) {
+        state = state.copyWith(
+          isScanning: false,
+          currentAction: "No duplicates found.",
+        );
+        ref.read(uiEventProvider.notifier).state = const ShowSnackbar('No potential duplicates found after filtering by size.');
+        return;
+      }
+
       state = state.copyWith(
         isScanning: true,
-        currentAction: "Scanning for duplicates...",
-        totalFiles: state.selectedFiles.length,
+        totalFiles: filesToHash.length,
         scannedFiles: 0,
-        duplicateFiles: {}, // Reset duplicates before new scan
+        currentAction: "Hashing ${filesToHash.length} potential duplicates...",
+        duplicateFiles: {}, // Reset
       );
 
       final Map<String, List<File>> fileHashes = {};
-
-      for (int i = 0; i < state.selectedFiles.length; i++) {
-        debugPrint('Scanning file: ${state.selectedFiles[i].path}');
-        final entity = state.selectedFiles[i];
+      for (int i = 0; i < filesToHash.length; i++) {
+        final file = filesToHash[i];
         
-        if (entity is File) {
-          state = state.copyWith(
-            scannedFiles: i + 1,
-            currentAction: "Scanning: ${entity.path}",
-            isScanning: true, // Preserve scanning state
-            duplicateFiles: state.duplicateFiles, // Preserve existing duplicates
-            totalFiles: state.totalFiles, // Preserve total files count
-          );
-          
-          final isValid = await isFileValid(entity);
-          if (!isValid) continue;
-          
-          final checksum = await calculateMD5(entity);
-          
-          if (!fileHashes.containsKey(checksum)) {
-            fileHashes[checksum] = [];
-          }
-          fileHashes[checksum]?.add(entity);
+        final isValid = await isFileValid(file);
+        if (!isValid) {
+          state = state.copyWith(scannedFiles: i + 1);
+          continue;
+        };
+
+        state = state.copyWith(
+          scannedFiles: i + 1,
+          currentAction: "Hashing: ${file.path}",
+        );
+        
+        final checksum = await calculateMD5(file);
+        
+        if (!fileHashes.containsKey(checksum)) {
+          fileHashes[checksum] = [];
         }
+        fileHashes[checksum]?.add(file);
       }
       
-      // Filter and update duplicate files
-      final duplicates = Map<String, List<File>>.fromEntries(
-        fileHashes.entries.where((entry) => entry.value.length > 1)
-      );
+      final duplicates = Map<String, List<File>>.fromEntries(fileHashes.entries.where((entry) => entry.value.length > 1));
 
-      debugPrint('Before state update - Current duplicates: ${state.duplicateFiles}');
-      
       state = state.copyWith(
         isScanning: false,
         currentAction: "Found ${duplicates.length} groups of duplicates",
         duplicateFiles: duplicates,
       );
+      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Scan complete. Found ${duplicates.length} groups of duplicates.');
 
-      debugPrint('After state update - New duplicates: ${state.duplicateFiles}');
-      debugPrint('Found ${duplicates.length} groups of duplicates');
     } catch (e) {
+      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error finding duplicates: $e', isError: true);
       state = state.copyWith(
         isScanning: false,
-        currentAction: "",
+        currentAction: "Error finding duplicates: $e",
         duplicateFiles: {}, // Clear duplicates on error
-      );
-      debugPrint('Error finding duplicates: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error finding duplicates: $e')),
       );
     }
   }
   
-  Future<void> removeDuplicates() async {
-    int count = 0;
-    final failedRemoval = <String>[];
-    
-    for (final entry in state.duplicateFiles.entries) {
-      final files = entry.value;
-      
-      // Keep the first file, remove duplicates
-      for (int i = 1; i < files.length; i++) {
-        // Show confirmation dialog before removal
-        // ignore: use_build_context_synchronously
-        final shouldRemove = await confirmRemoval(context, files[i].path);
-        
-        if (shouldRemove) {
-          try {
-            await files[i].delete();
-            count++;
-          } catch (e) {
-            failedRemoval.add(files[i].path);
-          }
-        }
-      }
-    }
-    
-    // Show results
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Removed $count duplicate files. ${failedRemoval.isNotEmpty ? "${failedRemoval.length} files failed to delete." : ""}'),
-        duration: const Duration(seconds: 5),
-      ),
-    );
-    
-    // Rescan to update the UI
-    await findDuplicates();
+  void requestRemoveFile(File file) {
+    ref.read(uiEventProvider.notifier).state = ShowFileDeleteConfirmation(file);
   }
 
-  Future<void> removeAllDuplicates(BuildContext context) async {
-    // Confirmation dialog
-    final shouldRemoveAll = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Bulk Removal'),
-        content: const Text('Are you want to delete ALL duplicate files? This will keep the original file from each group and remove all duplicates.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete All Duplicates'),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-          ),
-        ],
-      ),
-    );
+  Future<void> confirmRemoveFile(File file) async {
+    try {
+      await file.delete();
+      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Deleted ${file.path}');
+      // After deleting, re-scan to update the UI state.
+      await findDuplicatesByHashing();
+    } catch (e) {
+      ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error deleting ${file.path}: $e', isError: true);
+    }
+  }
+
+  void requestBulkDelete() {
+    if (state.duplicateFiles.isEmpty) {
+      ref.read(uiEventProvider.notifier).state = const ShowSnackbar('No duplicates to delete.');
+      return;
+    }
+    ref.read(uiEventProvider.notifier).state = const ShowBulkDeleteConfirmation();
+  }
+
+  Future<void> confirmBulkDelete() async {
+    final totalDuplicates = state.duplicateFiles.values.fold<int>(0, (prev, files) => prev + files.length - 1);
     
-    if (shouldRemoveAll != true) return;
-    
-    // Initialize deletion progress
-    final totalDuplicates = state.duplicateFiles.values.fold<int>(
-      0, (prev, files) => prev + files.length - 1
-    );
-    
-    // Show progress dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Removing Duplicates'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Sliding animation for duplicates
-                  SizedBox(
-                    height: 150,
-                    width: 250,
-                    child: Stack(
-                      children: [
-                        // Static icon at the top
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Icon(
-                            Icons.delete_sweep,
-                            color: Colors.red,
-                            size: 48,
-                          ),
-                        ),
-                        
-                        // Animated sliding items
-                        AnimatedBuilder(
-                          animation: ValueNotifier<int>(state.scannedFiles),
-                          builder: (context, child) {
-                            return Stack(
-                              children: List.generate(
-                                min(5, totalDuplicates - state.scannedFiles + 5),
-                                (index) => TweenAnimationBuilder(
-                                  tween: Tween<Offset>(
-                                    begin: Offset(0, 0),
-                                    end: index == 0 ? Offset(1.5, 0) : Offset(0, 0),
-                                  ),
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeOutQuad,
-                                  onEnd: () {
-                                    if (index == 0) {
-                                      setDialogState(() {});
-                                    }
-                                  },
-                                  builder: (context, Offset offset, child) {
-                                    return Positioned(
-                                      left: 20 + (offset.dx * 200),
-                                      bottom: 20 + (index * 20),
-                                      child: Transform.translate(
-                                        offset: offset,
-                                        child: Container(
-                                          width: 180,
-                                          height: 15,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade300,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Progress indicator
-                  LinearProgressIndicator(
-                    value: state.scannedFiles / max(totalDuplicates, 1),
-                    backgroundColor: Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${state.scannedFiles} / $totalDuplicates files deleted',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-    
-    // Update state to start deletion process
     state = state.copyWith(
       isScanning: true,
       currentAction: "Removing duplicates...",
@@ -248,57 +121,49 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     );
     
     int count = 0;
-    final failedRemoval = <String>[];
+    int failedCount = 0;
     
-    // Process each duplicate group
     int processed = 0;
-    for (final entry in state.duplicateFiles.entries) {
+    final entries = List.from(state.duplicateFiles.entries);
+
+    for (final entry in entries) {
       final files = entry.value;
       
       for (int i = 1; i < files.length; i++) {
         try {
-          // Update state with current file being processed
           state = state.copyWith(
             scannedFiles: processed + 1,
             currentAction: "Removing: ${files[i].path}"
           );
           
-          // Delete file with a small delay for smoother animation
-          await Future.delayed(const Duration(milliseconds: 100));
           await files[i].delete();
           count++;
         } catch (e) {
-          failedRemoval.add(files[i].path);
+          failedCount++;
+           debugPrint('Failed to delete ${files[i].path}');
         }
         processed++;
       }
     }
     
-    // Dismiss progress dialog
-    Navigator.of(context, rootNavigator: true).pop();
-    
-    // Final state update
-    state = state.copyWith(isScanning: false);
-    
-    // Show results snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Removed $count duplicate files. '
-          '${failedRemoval.isNotEmpty ? "${failedRemoval.length} files failed to delete." : ""}',
-        ),
-        backgroundColor: count > 0 ? Colors.green : Colors.orange,
-        duration: const Duration(seconds: 5),
-      ),
+    state = state.copyWith(
+      isScanning: false,
+      currentAction: "Removed $count duplicate files.",
+      duplicateFiles: {}, // Clear duplicates from state
     );
-    
-    // Clear duplicates
-    clearDuplicates();
+
+    String message = 'Removed $count duplicate files.';
+    if (failedCount > 0) {
+      message += ' $failedCount files failed to delete.';
+    }
+    ref.read(uiEventProvider.notifier).state = ShowSnackbar(message, isError: failedCount > 0);
   }
 
   void clearDuplicates() {
     state = state.copyWith(
       duplicateFiles: {},
+      selectedFiles: [],
+      currentAction: '',
     );
   }
 
@@ -308,13 +173,19 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     );
   }
 }
-  
 
-final duplicateRemoverNotifierProvider = StateNotifierProvider.family<DuplicateRemoverProvider, ClutterState, BuildContext>(
-  (ref, context) {
-    final clutterState = ref.watch(clutterNotifierProvider(context));
-    return DuplicateRemoverProvider(context, clutterState);
-  }
-);
+final duplicateRemoverNotifierProvider = StateNotifierProvider<DuplicateRemoverProvider, ClutterState>((ref) {
+  final provider = DuplicateRemoverProvider(ref);
 
+  // Listen to the clutter provider. When it produces a new, non-empty list of
+  // files to scan, this provider will automatically start the hashing process.
+  ref.listen(clutterNotifierProvider.select((state) => state.selectedFiles), (previous, next) {
+    // The check for previous != next ensures it doesn't run unnecessarily on rebuilds.
+    print('Selected files changed: $previous -> $next');
+    if (next.isNotEmpty && previous != next) {
+      provider.findDuplicatesByHashing();
+    }
+  });
 
+  return provider;
+});
