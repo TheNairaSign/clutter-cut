@@ -54,7 +54,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
         if (!isValid) {
           state = state.copyWith(scannedFiles: i + 1);
           continue;
-        };
+        }
 
         state = state.copyWith(
           scannedFiles: i + 1,
@@ -97,7 +97,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
       // Move to recycle bin instead of deleting
       await ref.read(recycleBinProvider.notifier).moveToRecycleBin(file);
       // After moving to recycle bin, re-scan to update the UI state
-      await findDuplicatesByHashing();
+      // await findDuplicatesByHashing();
     } catch (e) {
       ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error removing ${file.path}: $e', isError: true);
     }

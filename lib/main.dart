@@ -1,15 +1,45 @@
+import 'package:clutter_cut/core/background_task.dart';
 import 'package:clutter_cut/pages/file_duplicate_remover_screen.dart';
 import 'package:clutter_cut/pages/start_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:background_fetch/background_fetch.dart';
+
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  String taskId = task.taskId;
+  bool isTimeout = task.timeout;
+  if (isTimeout) {
+    // This task has exceeded its allowed running-time.
+    // You must stop what you're doing and immediately .finish(taskId)
+    print("[BackgroundFetch] Headless task timed-out: $taskId");
+    BackgroundFetch.finish(taskId);
+    return;
+  }
+  print('[BackgroundFetch] Headless event received.');
+  // Do your work here...
+  onBackgroundFetch(taskId);
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const ProviderScope(child: MyApp()));
+  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+    @override
+  void initState() {
+    super.initState();
+    initBackgroundFetch();
+  }
+
 
   @override
   Widget build(BuildContext context) {

@@ -27,6 +27,14 @@ class ShowBulkDeleteConfirmation extends UiEvent {
   const ShowBulkDeleteConfirmation();
 }
 
+/// An event to show a dialog that directs the user to the app settings.
+class ShowSettingsDialog extends UiEvent {
+  final String title;
+  final String message;
+
+  const ShowSettingsDialog(this.title, this.message);
+}
+
 /// This provider holds the latest, unhandled UI event.
 /// The UI layer should listen to this provider and handle the event,
 /// then set the state to null to signify that the event has been handled.

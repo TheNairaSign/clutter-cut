@@ -7,6 +7,8 @@ class ClutterState {
   int totalFiles;
   int scannedFiles;
   String currentAction;
+  bool isFullScan;
+
   ClutterState({
     required this.selectedFiles, 
     required this.duplicateFiles, 
@@ -14,6 +16,7 @@ class ClutterState {
     required this.totalFiles,
     required this.scannedFiles,
     required this.currentAction,
+    this.isFullScan = false,
   });
 
   
@@ -25,6 +28,7 @@ class ClutterState {
     int? totalFiles,
     int? scannedFiles,
     String? currentAction,
+    bool? isFullScan,
   }) {
     return ClutterState(
       selectedFiles: selectedFiles ?? this.selectedFiles,
@@ -33,6 +37,7 @@ class ClutterState {
       totalFiles: totalFiles ?? this.totalFiles,
       scannedFiles: scannedFiles ?? this.scannedFiles,
       currentAction: currentAction ?? this.currentAction, 
+      isFullScan: isFullScan ?? this.isFullScan,
     );
   }
 }
