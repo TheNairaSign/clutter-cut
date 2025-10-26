@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:clutter_cut/core/events.dart';
@@ -8,9 +6,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// Notifier that manages the state for scanning and identifying duplicate files.
+/// Coordinates permission requests, directory selection, and file-size-based grouping.
 class ClutterNotifier extends StateNotifier<ClutterState> {
   final Ref ref;
   
+  /// Creates a [ClutterNotifier] with an initial clean state.
   ClutterNotifier(this.ref): super(ClutterState(
     selectedFiles: [],
     duplicateFiles: {},
@@ -21,6 +22,8 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     isFullScan: false,
   ));
 
+  /// Ensures the app has external-storage permission on Android.
+  /// If denied, prompts the user and opens settings if permanently denied.
   Future<void> requestPermissions() async {
     print('Requesting storage permissions...');
     var status = await Permission.manageExternalStorage.status;
@@ -34,6 +37,8 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     }
   }
 
+  /// Initiates a full-device scan starting at the primary external storage root.
+  /// Sets [isFullScan] to true while scanning and reverts it afterwards.
   Future<void> scanEntireDevice() async {
     state = state.copyWith(isFullScan: true);
     await requestPermissions();
@@ -41,6 +46,8 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     state = state.copyWith(isFullScan: false);
   }
 
+  /// Opens a directory picker so the user can choose a specific folder to scan.
+  /// Resets [isFullScan] to false and delegates to [_scanDirectory] on success.
   Future<void> selectDirectory() async {
     state = state.copyWith(isFullScan: false);
     await requestPermissions();
@@ -58,6 +65,11 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
     }
   }
 
+  /// Core scanning logic:
+  /// 1. Lists all files recursively.
+  /// 2. Groups them by size.
+  /// 3. Keeps only groups with >1 file (potential duplicates).
+  /// 4. Updates state with the list of files that need hashing.
   Future<void> _scanDirectory(String directoryPath) async {
     print('Directory selected: $directoryPath');
     state = state.copyWith(
@@ -141,4 +153,5 @@ class ClutterNotifier extends StateNotifier<ClutterState> {
   }
 }
 
+/// Global provider that exposes [ClutterNotifier] to the rest of the app.
 final clutterNotifierProvider = StateNotifierProvider<ClutterNotifier, ClutterState>((ref) => ClutterNotifier(ref));

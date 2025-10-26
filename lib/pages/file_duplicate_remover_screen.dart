@@ -1,3 +1,4 @@
+// Import necessary packages for the duplicate-remover screen
 import 'package:clutter_cut/core/background_task.dart';
 import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/pages/settings_page.dart';
@@ -14,6 +15,8 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// Main screen for duplicate file removal functionality.
+/// Uses Riverpod for state management and reacts to UI events.
 class FileDuplicateRemoverScreen extends ConsumerStatefulWidget {
   const FileDuplicateRemoverScreen({super.key});
 
@@ -22,21 +25,23 @@ class FileDuplicateRemoverScreen extends ConsumerStatefulWidget {
       _FileDuplicateRemoverScreenState();
 }
 
-class _FileDuplicateRemoverScreenState
-    extends ConsumerState<FileDuplicateRemoverScreen> {
+class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemoverScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialization logic can be added here if needed
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch providers to get current state
     final clutterState = ref.watch(clutterNotifierProvider);
     final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
     final duplicateRemover =
         ref.watch(duplicateRemoverNotifierProvider.notifier);
     final clutterNotifier = ref.watch(clutterNotifierProvider.notifier);
 
+    // Determine scanning state and progress based on which provider is active
     final isScanning = clutterState.isScanning || duplicateState.isScanning;
     final currentAction = clutterState.isScanning ? clutterState.currentAction : duplicateState.currentAction;
     final scannedFiles = clutterState.isScanning ? clutterState.scannedFiles : duplicateState.scannedFiles;
@@ -47,6 +52,7 @@ class _FileDuplicateRemoverScreenState
       if (next != null) {
         final event = next;
         if (event is ShowSnackbar) {
+          // Show a snackbar with the event message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(event.message),
@@ -54,6 +60,7 @@ class _FileDuplicateRemoverScreenState
             ),
           );
         } else if (event is ShowBulkDeleteConfirmation) {
+          // Show confirmation dialog for bulk deletion of duplicates
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -77,6 +84,7 @@ class _FileDuplicateRemoverScreenState
             ),
           );
         } else if (event is ShowFileDeleteConfirmation) {
+          // Show confirmation dialog for deleting a single duplicate file
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -99,6 +107,7 @@ class _FileDuplicateRemoverScreenState
             ),
           );
         } else if (event is ShowSettingsDialog) {
+          // Show dialog prompting user to open app settings (e.g., for permissions)
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -125,22 +134,27 @@ class _FileDuplicateRemoverScreenState
       }
     });
 
+    // Debug prints for development purposes
     debugPrint('Scanned Files Display: ${duplicateState.scannedFiles}');
 
     final duplicateCount = duplicateState.duplicateFiles.keys.length;
     debugPrint('Duplicate Files Display: $duplicateCount');
 
+    // Determine theme brightness for adaptive UI
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    // Main UI structure using a Stack to overlay scanning indicator
     return Stack(
       children: [
         Scaffold(
             body: CustomScrollView(slivers: [
+          // AppBar with title, recycle-bin shortcut, and settings button
           SliverAppBar(
             floating: true,
             pinned: true,
             actionsPadding: const EdgeInsets.symmetric(horizontal: 15),
             actions: [
+              // Recycle bin icon button
               GestureDetector(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RecycleBinView())),
                 child: Container(
@@ -160,8 +174,33 @@ class _FileDuplicateRemoverScreenState
                   ),
                 ),
               ),
+              // const SizedBox(width: 10),
+              // GestureDetector(
+              //   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RecycleBinView())),
+              //   child: Container(
+              //     height: 35,
+              //     width: 35,
+              //     decoration: BoxDecoration(
+              //       color: Colors.grey.withValues(alpha: .3),
+              //       shape: BoxShape.circle
+              //       ),
+              //     child: SvgPicture.asset(
+              //       isDarkMode
+              //         ? 'assets/svgs/settings-white.svg'
+              //         : 'assets/svgs/settings-black.svg',
+              //       width: 24,
+              //       height: 24,
+              //       fit: BoxFit.scaleDown,
+              //     ),
+              //   ),
+              // ),
+              // Settings icon button
               IconButton(
-                icon: const Icon(Icons.settings),
+                icon: Icon(Icons.settings_outlined),
+                style: IconButton.styleFrom(
+                  // padding: const EdgeInsets.symmetric(horizontal: 10),
+                  // backgroundColor: Colors.grey.withValues(alpha: .3),
+                ),
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
                 },
@@ -178,42 +217,25 @@ class _FileDuplicateRemoverScreenState
               ),
             ),
           ),
+          // Main content area with summary, scan buttons, and results
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                // Summary card showing scan statistics
                 SummaryCard(),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          ref.read(clutterNotifierProvider.notifier).scanEntireDevice();
-                        },
-                        icon: const Icon(Icons.sync),
-                        label: const Text("Scan Entire Device"),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          ref.read(clutterNotifierProvider.notifier).selectDirectory();
-                        },
-                        icon: const Icon(Icons.folder_open),
-                        label: const Text("Select Directory"),
-                      ),
-                    ),
-                  ],
-                ),
+                // Row of scan action buttons
+                
                 const SizedBox(height: 16),
+                // Show progress indicator if scanning (non-fullscreen)
                 if (isScanning && !clutterState.isFullScan)
                   ScanningProgressIndicator(
                     currentAction: currentAction,
                     scannedFiles: scannedFiles,
                     totalFiles: totalFiles,
                   ),
+                // Show results or empty state when not scanning
                 if (!isScanning)
                   duplicateState.duplicateFiles.isEmpty
                       ? AnimatedSwitcher(
@@ -251,6 +273,7 @@ class _FileDuplicateRemoverScreenState
             ),
           ),
         ])),
+        // Overlay full-screen scanning indicator when a full scan is active
         if (isScanning && clutterState.isFullScan)
           FullScreenScanningIndicator(currentAction: currentAction),
       ],

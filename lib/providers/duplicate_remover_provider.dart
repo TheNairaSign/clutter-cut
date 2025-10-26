@@ -9,6 +9,10 @@ import 'package:clutter_cut/utils/is_file_valid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' hide Provider;
 
+/// Manages the state and logic for finding and removing duplicate files.
+///
+/// This provider is responsible for hashing files to identify duplicates,
+/// and for handling the removal of these files (by moving them to the recycle bin).
 class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
   final Ref ref;
 
@@ -18,9 +22,14 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     isScanning: false, 
     totalFiles: 0, 
     scannedFiles: 0, 
-    currentAction: ''
+    currentAction: '',
+    isFullScan: false,
   ));
 
+  /// Hashes a list of files to find duplicates based on their MD5 checksum.
+  ///
+  /// This method is typically called after a preliminary scan has identified
+  /// files of the same size.
   Future<void> findDuplicatesByHashing() async {
     debugPrint('Hashing potential duplicates...');
     
@@ -88,10 +97,12 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     }
   }
   
+  /// Requests the removal of a single file by showing a confirmation dialog.
   void requestRemoveFile(File file) {
     ref.read(uiEventProvider.notifier).state = ShowFileDeleteConfirmation(file);
   }
 
+  /// Confirms the removal of a single file and moves it to the recycle bin.
   Future<void> confirmRemoveFile(File file) async {
     try {
       // Move to recycle bin instead of deleting
@@ -103,6 +114,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     }
   }
 
+  /// Requests the bulk deletion of all found duplicate files.
   void requestBulkDelete() {
     if (state.duplicateFiles.isEmpty) {
       ref.read(uiEventProvider.notifier).state = const ShowSnackbar('No duplicates to delete.');
@@ -111,6 +123,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     ref.read(uiEventProvider.notifier).state = const ShowBulkDeleteConfirmation();
   }
 
+  /// Confirms the bulk deletion and moves all duplicate files to the recycle bin.
   Future<void> confirmBulkDelete() async {
     final totalDuplicates = state.duplicateFiles.values.fold<int>(0, (prev, files) => prev + files.length - 1);
     
@@ -161,6 +174,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     ref.read(uiEventProvider.notifier).state = ShowSnackbar(message, isError: failedCount > 0);
   }
 
+  /// Clears the list of duplicate files from the state.
   void clearDuplicates() {
     state = state.copyWith(
       duplicateFiles: {},
@@ -169,6 +183,7 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
     );
   }
 
+  /// Removes a specific group of duplicate files from the state.
   void removeDuplicateGroup(String hash,) {
     state = state.copyWith(
       duplicateFiles: Map.from(state.duplicateFiles)..remove(hash),
@@ -176,6 +191,10 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
   }
 }
 
+/// Provider for accessing the [DuplicateRemoverProvider].
+///
+/// This provider also listens to the [clutterNotifierProvider] to automatically
+/// trigger the hashing process when a new list of potential duplicates is available.
 final duplicateRemoverNotifierProvider = StateNotifierProvider<DuplicateRemoverProvider, ClutterState>((ref) {
   final provider = DuplicateRemoverProvider(ref);
 

@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+/// Represents the state of the recycle bin, including the list of recycled files,
+/// loading status, and the current action being performed.
 class RecycleBinState {
   final List<RecycledFile> recycledFiles;
   final bool isLoading;
@@ -33,6 +35,10 @@ class RecycleBinState {
   }
 }
 
+/// Manages the state and logic for the recycle bin feature.
+///
+/// This notifier handles moving files to the recycle bin, restoring them,
+/// permanently deleting them, and managing the recycle bin's lifecycle.
 class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
   final Ref ref;
   
@@ -41,6 +47,8 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     _loadRecycledFiles();
   }
 
+  /// Gets the path to the recycle bin directory within the app's documents directory.
+  /// Creates the directory if it doesn't exist.
   Future<String> get _recycleBinPath async {
     final appDir = await getApplicationDocumentsDirectory();
     final binPath = path.join(appDir.path, 'recycle_bin');
@@ -56,6 +64,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     return binPath;
   }
 
+  /// Gets the path to the JSON file that stores the index of recycled files.
   Future<String> get _recycleBinIndexPath async {
     final appDir = await getApplicationDocumentsDirectory();
     final indexPath = path.join(appDir.path, 'recycle_bin_index.json');
@@ -63,6 +72,8 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     return indexPath;
   }
 
+  /// Loads the list of recycled files from the JSON index file.
+  /// This method is called when the notifier is initialized.
   Future<void> _loadRecycledFiles() async {
     try {
       state = state.copyWith(isLoading: true);
@@ -97,6 +108,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Saves the current list of recycled files to the JSON index file.
   Future<void> _saveRecycledFiles() async {
     try {
       final indexPath = await _recycleBinIndexPath;
@@ -112,6 +124,10 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Moves a file to the recycle bin.
+  ///
+  /// This involves copying the file to the recycle bin directory, deleting the original,
+  /// and adding a record to the recycle bin index.
   Future<void> moveToRecycleBin(File file) async {
     try {
       debugPrint('Moving file to recycle bin: ${file.path}');
@@ -197,6 +213,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Generates a unique path for a file in the recycle bin to avoid name collisions.
   Future<String> _getRecyclePathForFile(File file) async {
     final recycleBinPath = await _recycleBinPath;
     final fileName = path.basename(file.path);
@@ -204,6 +221,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     return path.join(recycleBinPath, '${timestamp}_$fileName');
   }
 
+  /// Restores a file from the recycle bin to its original location.
   Future<void> restoreFile(RecycledFile recycledFile) async {
     try {
       state = state.copyWith(
@@ -251,6 +269,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Permanently deletes a file from the recycle bin.
   Future<void> permanentlyDeleteFile(RecycledFile recycledFile) async {
     try {
       state = state.copyWith(
@@ -286,6 +305,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Deletes files from the recycle bin that have passed their expiration date.
   Future<void> _cleanupExpiredFiles() async {
     try {
       final expiredFiles = state.recycledFiles.where((file) => file.isExpired);
@@ -310,6 +330,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
     }
   }
 
+  /// Permanently deletes all files currently in the recycle bin.
   Future<void> emptyRecycleBin() async {
     try {
       state = state.copyWith(
@@ -350,6 +371,7 @@ class RecycleBinNotifier extends StateNotifier<RecycleBinState> {
   }
 }
 
+/// Provider for accessing the [RecycleBinNotifier].
 final recycleBinProvider = StateNotifierProvider<RecycleBinNotifier, RecycleBinState>(
   (ref) => RecycleBinNotifier(ref),
 );
