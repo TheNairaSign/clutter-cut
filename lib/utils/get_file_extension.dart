@@ -28,7 +28,7 @@ Widget getFileIcon(BuildContext context, String filePath) {
     case 'pdf':
       return SvgPicture.asset(
         'assets/svgs/pdf-file-red.svg', // Use same SVG but with dynamic color
-        color: pdfColor,
+        colorFilter: ColorFilter.mode(pdfColor, BlendMode.srcIn),
       );
     case 'jpg':
     case 'jpeg':
@@ -37,7 +37,7 @@ Widget getFileIcon(BuildContext context, String filePath) {
     case 'bmp':
       return SvgPicture.asset(
         'assets/svgs/photo.svg',
-        color: imageColor,
+        colorFilter: ColorFilter.mode(imageColor, BlendMode.srcIn),
       );
     case 'mp4':
     case 'avi':
@@ -45,7 +45,7 @@ Widget getFileIcon(BuildContext context, String filePath) {
     case 'wmv':
       return SvgPicture.asset(
         'assets/svgs/video-library.svg',
-        color: pdfColor,
+        colorFilter: ColorFilter.mode(pdfColor, BlendMode.srcIn),
       );
     case 'mp3':
     case 'wav':
@@ -53,7 +53,7 @@ Widget getFileIcon(BuildContext context, String filePath) {
     case 'm4a':
       return SvgPicture.asset(
         'assets/svgs/music-folder.svg',
-        color: imageColor, // Using green for audio too
+        colorFilter: ColorFilter.mode(imageColor, BlendMode.srcIn), // Using green for audio too
       );
     case 'doc':
     case 'docx':
@@ -61,19 +61,19 @@ Widget getFileIcon(BuildContext context, String filePath) {
     case 'rtf':
       return SvgPicture.asset(
         isDarkMode ? 'assets/svgs/document.svg' : 'assets/svgs/document-filled.svg',
-        color: colorScheme.primary, // Blue for documents
+        colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn), // Blue for documents
       );
     case 'zip':
     case 'rar':
     case '7z':
       return SvgPicture.asset(
         'assets/svgs/zip-file.svg',
-        color: defaultIconColor, // Subtle gray for archives
+        colorFilter: ColorFilter.mode(defaultIconColor, BlendMode.srcIn), // Subtle gray for archives
       );
     default:
       return SvgPicture.asset(
         'assets/svgs/document.svg',
-        color: defaultIconColor,
+        colorFilter: ColorFilter.mode(defaultIconColor, BlendMode.srcIn),
       );
   }
 }

@@ -2,20 +2,17 @@ import 'package:animate_do/animate_do.dart';
 import 'package:clutter_cut/pages/file_duplicate_remover_screen.dart';
 import 'package:flutter/material.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class StartPage extends StatefulWidget {
+  const StartPage({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<StartPage> createState() => _StartPageState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  final int seconds = 3;
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration(seconds: seconds + 2), () {
-      Navigator.of(context).pushReplacement(
+class _StartPageState extends State<StartPage> {
+
+  void navigateToScreen() {
+     Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const FileDuplicateRemoverScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -31,17 +28,45 @@ class _SplashScreenState extends State<SplashScreen> {
           transitionDuration: const Duration(milliseconds: 1000),
         ),
       );
-    });
   }
-  
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(seconds: 5), () => navigateToScreen());
+  }
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark? Colors.white : Colors.black;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: FadeIn(
-        duration: Duration(seconds: seconds),
-        child: Center(
-          child: Image.asset('assets/clutter-cut-logo.png'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/open-folder.png',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.scaleDown,
+                ),
+                const SizedBox(width: 10),
+                FadeInRight(
+                  from: 200,
+                  delay: Duration(milliseconds: 1500),
+                  duration: const Duration(milliseconds: 1500),
+                  child: Text(
+                    'Cluttercut',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

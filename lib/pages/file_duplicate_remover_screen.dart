@@ -21,8 +21,7 @@ class FileDuplicateRemoverScreen extends ConsumerStatefulWidget {
   const FileDuplicateRemoverScreen({super.key});
 
   @override
-  ConsumerState<FileDuplicateRemoverScreen> createState() =>
-      _FileDuplicateRemoverScreenState();
+  ConsumerState<FileDuplicateRemoverScreen> createState() => _FileDuplicateRemoverScreenState();
 }
 
 class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemoverScreen> {
@@ -37,8 +36,7 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
     // Watch providers to get current state
     final clutterState = ref.watch(clutterNotifierProvider);
     final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
-    final duplicateRemover =
-        ref.watch(duplicateRemoverNotifierProvider.notifier);
+    final duplicateRemover = ref.watch(duplicateRemoverNotifierProvider.notifier);
     final clutterNotifier = ref.watch(clutterNotifierProvider.notifier);
 
     // Determine scanning state and progress based on which provider is active
@@ -165,51 +163,43 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
                     shape: BoxShape.circle
                     ),
                   child: SvgPicture.asset(
-                    isDarkMode
-                      ? 'assets/svgs/bins/recycle-bin-white.svg'
-                      : 'assets/svgs/bins/recycle-bin-black.svg',
+                    'assets/svgs/bins/recycle-bin-black.svg',
                     width: 24,
                     height: 24,
                     fit: BoxFit.scaleDown,
+                    colorFilter: ColorFilter.mode(isDarkMode ? Colors.white : Colors.black, BlendMode.srcIn),
                   ),
                 ),
               ),
-              // const SizedBox(width: 10),
-              // GestureDetector(
-              //   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RecycleBinView())),
-              //   child: Container(
-              //     height: 35,
-              //     width: 35,
-              //     decoration: BoxDecoration(
-              //       color: Colors.grey.withValues(alpha: .3),
-              //       shape: BoxShape.circle
-              //       ),
-              //     child: SvgPicture.asset(
-              //       isDarkMode
-              //         ? 'assets/svgs/settings-white.svg'
-              //         : 'assets/svgs/settings-black.svg',
-              //       width: 24,
-              //       height: 24,
-              //       fit: BoxFit.scaleDown,
-              //     ),
-              //   ),
-              // ),
-              // Settings icon button
-              IconButton(
-                icon: Icon(Icons.settings_outlined),
-                style: IconButton.styleFrom(
-                  // padding: const EdgeInsets.symmetric(horizontal: 10),
-                  // backgroundColor: Colors.grey.withValues(alpha: .3),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage())),
+                child: Container(
+                  height: 35,
+                  width: 35,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: .3),
+                    shape: BoxShape.circle
+                    ),
+                  child: Icon(Icons.settings_outlined),
                 ),
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
-                },
               ),
+              // Settings icon button
+              // IconButton(
+              //   icon: Icon(Icons.settings_outlined),
+              //   style: IconButton.styleFrom(
+              //     // padding: const EdgeInsets.symmetric(horizontal: 10),
+              //     // backgroundColor: Colors.grey.withValues(alpha: .3),
+              //   ),
+              //   onPressed: () {
+              //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
+              //   },
+              // ),
             ],
             expandedHeight: 120,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: Text('ClutterCut', style: const TextStyle().copyWith(fontWeight: FontWeight.bold)),
+              title: Text('Cluttercut', style: const TextStyle().copyWith(fontWeight: FontWeight.bold)),
               background: Card(
                 elevation: 0,
                 shape: const RoundedRectangleBorder(side: BorderSide.none),

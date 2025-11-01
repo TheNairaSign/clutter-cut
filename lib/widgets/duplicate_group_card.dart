@@ -44,12 +44,13 @@ class DuplicateGroupCard extends StatelessWidget {
           },
         ),
         leading: isExpanded 
-          ? SvgPicture.asset('assets/svgs/folder-open.svg', color: iconColor)
-          : SvgPicture.asset('assets/svgs/dir.svg', color: iconColor),
+          ? SvgPicture.asset('assets/svgs/folder-open.svg', colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn))
+          : SvgPicture.asset('assets/svgs/dir.svg', colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn)),
         onExpansionChanged: onExpansionChanged,
         children: files.map((file) {
           return DuplicateFileItem(
             file: file,
+            originalFile: files.first,
             isOriginal: files.indexOf(file) == 0,
           );
         }).toList(),

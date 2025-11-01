@@ -3,15 +3,18 @@ import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:clutter_cut/utils/confirm_dialog.dart';
 import 'package:clutter_cut/utils/get_file_extension.dart';
+import 'package:clutter_cut/pages/file_preview_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DuplicateFileItem extends ConsumerWidget {
   final File file;
+  final File originalFile;
   final bool isOriginal;
 
   const DuplicateFileItem({
     super.key,
     required this.file,
+    required this.originalFile,
     required this.isOriginal,
   });
 
@@ -24,6 +27,19 @@ class DuplicateFileItem extends ConsumerWidget {
     final duplicateRemover = ref.watch(duplicateRemoverNotifierProvider.notifier);
 
     return ListTile(
+      onTap: () {
+        final extension = file.path.split('.').last.toLowerCase();
+        if (['mp4', 'avi', 'mov', 'wmv'].contains(extension)) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => FilePreviewPage(
+                originalFile: originalFile,
+                duplicateFile: file,
+              ),
+            ),
+          );
+        }
+      },
       title: Text(
         file.path.split(Platform.pathSeparator).last, 
         style: TextStyle(fontWeight: isOriginal ? FontWeight.bold : FontWeight.normal)

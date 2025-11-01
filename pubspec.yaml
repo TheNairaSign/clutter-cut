@@ -1,5 +1,5 @@
 name: clutter_cut
-description: "A new Flutter project."
+description: "A smart Flutter app to declutter your device by scanning and removing duplicate files with intuitive animations and Riverpod state management."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -46,6 +46,8 @@ dependencies:
   flutter_svg: ^2.2.1
   google_fonts: ^6.2.1
   flutter_staggered_animations: ^1.1.1
+  video_player: ^2.10.0
+  chewie: ^1.13.0
 
 dev_dependencies:
   flutter_test:
@@ -57,13 +59,20 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
-flutter:
 
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/open-folder.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -73,6 +82,7 @@ flutter:
   assets:
     - assets/
     - assets/svgs/
+    - assets/fonts/
     - assets/svgs/bins/
 
   fonts:
