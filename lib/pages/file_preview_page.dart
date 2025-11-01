@@ -91,9 +91,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Chewie(
-      controller: _chewieController,
-    );
+    return Chewie(controller: _chewieController);
   }
 
   @override

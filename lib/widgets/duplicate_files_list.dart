@@ -3,22 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:clutter_cut/widgets/duplicate_group_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DuplicateFilesList extends ConsumerStatefulWidget {
+final expandedStatesProvider = StateProvider<Map<int, bool>>((ref) => {});
 
+class DuplicateFilesList extends ConsumerWidget {
   const DuplicateFilesList({super.key});
 
   @override
-  ConsumerState<DuplicateFilesList> createState() => _DuplicateFilesListState();
-}
-
-class _DuplicateFilesListState extends ConsumerState<DuplicateFilesList> {
-
-  final Map<int, bool> _expandedStates = {};
-
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
+    final expandedStates = ref.watch(expandedStatesProvider);
+
+    // When the duplicate files change, reset the expanded states
+    ref.listen(duplicateRemoverNotifierProvider.select((state) => state.duplicateFiles), (previous, next) {
+      if (previous != next) {
+        ref.read(expandedStatesProvider.notifier).state = {};
+      }
+    });
 
     return SizedBox(
       width: double.infinity,
@@ -31,15 +31,15 @@ class _DuplicateFilesListState extends ConsumerState<DuplicateFilesList> {
         itemBuilder: (context, index) {
           final hash = duplicateState.duplicateFiles.keys.elementAt(index);
           final files = duplicateState.duplicateFiles[hash]!;
-      
+
           return DuplicateGroupCard(
             index: index,
             files: files,
-            isExpanded: _expandedStates[index] == true,
+            isExpanded: expandedStates[index] == true,
             onExpansionChanged: (value) {
-              setState(() {
-                _expandedStates[index] = value;
-              });
+              final newExpandedStates = Map<int, bool>.from(expandedStates);
+              newExpandedStates[index] = value;
+              ref.read(expandedStatesProvider.notifier).state = newExpandedStates;
             },
           );
         },

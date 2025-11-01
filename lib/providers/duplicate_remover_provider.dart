@@ -105,10 +105,28 @@ class DuplicateRemoverProvider extends StateNotifier<ClutterState> {
   /// Confirms the removal of a single file and moves it to the recycle bin.
   Future<void> confirmRemoveFile(File file) async {
     try {
+      // Get the hash of the file to be deleted
+      final checksum = await calculateMD5(file);
+
       // Move to recycle bin instead of deleting
       await ref.read(recycleBinProvider.notifier).moveToRecycleBin(file);
-      // After moving to recycle bin, re-scan to update the UI state
-      // await findDuplicatesByHashing();
+
+      // Get the current list of duplicates
+      final currentDuplicates = Map<String, List<File>>.from(state.duplicateFiles);
+
+      // Find the group of duplicates that the file belongs to
+      if (currentDuplicates.containsKey(checksum)) {
+        // Remove the file from the group
+        currentDuplicates[checksum]!.removeWhere((f) => f.path == file.path);
+
+        // If the group now has less than 2 files, remove the group
+        if (currentDuplicates[checksum]!.length < 2) {
+          currentDuplicates.remove(checksum);
+        }
+
+        // Update the state
+        state = state.copyWith(duplicateFiles: currentDuplicates);
+      }
     } catch (e) {
       ref.read(uiEventProvider.notifier).state = ShowSnackbar('Error removing ${file.path}: $e', isError: true);
     }
