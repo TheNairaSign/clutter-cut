@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:video_player/video_player.dart';
 
 class FilePreviewPage extends StatelessWidget {
@@ -57,6 +58,8 @@ class FilePreviewPage extends StatelessWidget {
       return Image.file(file);
     } else if (['mp4', 'avi', 'mov', 'wmv'].contains(extension)) {
       return VideoPlayerWidget(file: file);
+    } else if (extension == 'svg') {
+      return SvgPicture.file(file);
     } else {
       return const Center(
         child: Text('File preview not available for this file type.'),

@@ -1,6 +1,5 @@
 
 import 'package:background_fetch/background_fetch.dart';
-import 'package:clutter_cut/providers/clutter_provider.dart';
 import 'package:clutter_cut/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +14,7 @@ Future<void> performBackgroundScan() async {
   final settings = container.read(settingsProvider);
 
   if (settings.isBackgroundScanEnabled) {
-    final clutterNotifier = container.read(clutterNotifierProvider.notifier);
+    // final clutterNotifier = container.read(clutterNotifierProvider.notifier);
     // await clutterNotifier.scanDevice(); // This will trigger the scan
   }
 }

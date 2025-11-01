@@ -1,5 +1,4 @@
 import 'package:clutter_cut/core/background_task.dart';
-import 'package:clutter_cut/pages/file_duplicate_remover_screen.dart';
 import 'package:clutter_cut/pages/start_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

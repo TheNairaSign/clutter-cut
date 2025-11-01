@@ -1,5 +1,4 @@
 // Import necessary packages for the duplicate-remover screen
-import 'package:clutter_cut/core/background_task.dart';
 import 'package:clutter_cut/core/events.dart';
 import 'package:clutter_cut/pages/settings_page.dart';
 import 'package:clutter_cut/providers/clutter_provider.dart';
@@ -37,7 +36,6 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
     final clutterState = ref.watch(clutterNotifierProvider);
     final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
     final duplicateRemover = ref.watch(duplicateRemoverNotifierProvider.notifier);
-    final clutterNotifier = ref.watch(clutterNotifierProvider.notifier);
 
     // Determine scanning state and progress based on which provider is active
     final isScanning = clutterState.isScanning || duplicateState.isScanning;
@@ -181,7 +179,7 @@ class _FileDuplicateRemoverScreenState extends ConsumerState<FileDuplicateRemove
                     color: Colors.grey.withValues(alpha: .3),
                     shape: BoxShape.circle
                     ),
-                  child: Icon(Icons.settings_outlined),
+                  child: Icon(Icons.settings_outlined, color: isDarkMode ? Colors.white : Colors.black,),
                 ),
               ),
               // Settings icon button

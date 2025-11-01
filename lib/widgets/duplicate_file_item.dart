@@ -29,7 +29,7 @@ class DuplicateFileItem extends ConsumerWidget {
     return ListTile(
       onTap: () {
         final extension = file.path.split('.').last.toLowerCase();
-        if (['mp4', 'avi', 'mov', 'wmv'].contains(extension)) {
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'mp4', 'avi', 'mov', 'wmv'].contains(extension)) {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => FilePreviewPage(

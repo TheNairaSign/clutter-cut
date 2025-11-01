@@ -1,7 +1,6 @@
 import 'package:clutter_cut/providers/duplicate_remover_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:clutter_cut/providers/clutter_provider.dart';
 
 class SummaryCard extends ConsumerWidget {
@@ -12,16 +11,11 @@ class SummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark? Colors.white : Colors.black;
-    final colorScheme = Theme.of(context).colorScheme;
-    final primaryColor = colorScheme.primary;
-    final errorColor = colorScheme.error;
 
     final duplicateState = ref.watch(duplicateRemoverNotifierProvider);
 
     final clutterState = ref.watch(clutterNotifierProvider);
     final duplicateCount = duplicateState.duplicateFiles.keys.length;
-
-    final duplicateRemover = ref.watch(duplicateRemoverNotifierProvider.notifier);
 
     return Card(
       color: Theme.of(context).cardColor,
